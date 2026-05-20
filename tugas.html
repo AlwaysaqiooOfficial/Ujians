@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Color Picker Pro</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#ffffff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.container{
+    width:460px;
+    background:#f3f0ec;
+    border-radius:28px;
+    padding:35px 35px 45px;
+}
+
+.title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:28px;
+}
+
+.title span{
+    font-size:52px;
+}
+
+.title h1{
+    font-size:38px;
+    font-weight:700;
+}
+
+.top-section{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-bottom:25px;
+}
+
+.color-box-small{
+    width:96px;
+    height:54px;
+    border:3px solid #7d7d7d;
+    border-radius:4px;
+    background:#facc15;
+    position:relative;
+    overflow:hidden;
+}
+
+.color-box-small::before{
+    content:'';
+    position:absolute;
+    inset:7px;
+    background:#facc15;
+}
+
+.sliders{
+    margin-bottom:30px;
+}
+
+.slider-group{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.slider-group label{
+    width:28px;
+    font-size:28px;
+}
+
+input[type="range"]{
+    -webkit-appearance:none;
+    width:100%;
+    height:12px;
+    border-radius:20px;
+    background:#d6d6d6;
+    outline:none;
+}
+
+input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:#1683ff;
+    cursor:pointer;
+    border:none;
+}
+
+input[type="range"]::-moz-range-thumb{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:#1683ff;
+    border:none;
+    cursor:pointer;
+}
+
+.preview{
+    width:100%;
+    height:120px;
+    border-radius:26px;
+    background:#facc15;
+    margin-bottom:20px;
+}
+
+.hex-text{
+    font-size:28px;
+    margin-bottom:24px;
+}
+
+.buttons{
+    display:flex;
+    justify-content:center;
+    gap:28px;
+}
+
+button{
+    border:none;
+    background:#e4e4e4;
+    padding:18px 32px;
+    border-radius:20px;
+    font-size:24px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+    box-shadow:0 2px 0 rgba(0,0,0,0.15) inset;
+}
+
+button:hover{
+    transform:scale(1.03);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="title">
+        <span>🎨</span>
+        <h1>Color Picker Pro</h1>
+    </div>
+
+    <div class="top-section">
+        <div class="color-box-small" id="smallPreview"></div>
+    </div>
+
+    <div class="sliders">
+
+        <div class="slider-group">
+            <label>R:</label>
+            <input type="range" id="red" min="0" max="255" value="250">
+        </div>
+
+        <div class="slider-group">
+            <label>G:</label>
+            <input type="range" id="green" min="0" max="255" value="204">
+        </div>
+
+        <div class="slider-group">
+            <label>B:</label>
+            <input type="range" id="blue" min="0" max="255" value="21">
+        </div>
+
+    </div>
+
+    <div class="preview" id="preview"></div>
+
+    <div class="hex-text">
+        Hex: <span id="hex">#facc15</span>
+    </div>
+
+    <div class="buttons">
+        <button id="copyBtn" type="button">Copy Hex</button>
+        <button id="resetBtn" type="button">Reset</button>
+    </div>
+
+</div>
+
+<script>
+const red = document.getElementById("red");
+const green = document.getElementById("green");
+const blue = document.getElementById("blue");
+
+const preview = document.getElementById("preview");
+const smallPreview = document.getElementById("smallPreview");
+const hexText = document.getElementById("hex");
+
+const copyBtn = document.getElementById("copyBtn");
+const resetBtn = document.getElementById("resetBtn");
+
+function componentToHex(c){
+    const hex = Number(c).toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r,g,b){
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+function updateColor(){
+    const r = red.value;
+    const g = green.value;
+    const b = blue.value;
+    const rgb = `rgb(${r}, ${g}, ${b})`;
+    const hex = rgbToHex(r,g,b);
+
+    preview.style.background = rgb;
+    smallPreview.style.background = rgb;
+    hexText.textContent = hex;
+}
+
+function copyTextToClipboard(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+        return navigator.clipboard.writeText(text);
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textarea);
+
+    return successful ? Promise.resolve() : Promise.reject(new Error('copy failed'));
+}
+
+red.addEventListener("input", updateColor);
+green.addEventListener("input", updateColor);
+blue.addEventListener("input", updateColor);
+
+copyBtn.addEventListener("click", async () => {
+    try{
+        await copyTextToClipboard(hexText.textContent);
+        copyBtn.textContent = "Copied!";
+
+        setTimeout(() => {
+            copyBtn.textContent = "Copy Hex";
+        }, 1500);
+    }catch(err){
+        alert("Failed to copy!");
+    }
+});
+
+resetBtn.addEventListener("click", () => {
+    red.value = 250;
+    green.value = 204;
+    blue.value = 21;
+    updateColor();
+});
+
+updateColor();
+</script>
+
+</body>
+</html>
